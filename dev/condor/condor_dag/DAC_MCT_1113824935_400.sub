@@ -1,0 +1,9 @@
+Executable = DAC_condor_exe
+Universe = vanilla
+Arguments = $(macrojobnumber) 1113824935 400 SUS_drive_signals_1112054416.txt
+Error = log_1113824935_DAC/err.$(macrojobnumber)
+Output = log_1113824935_DAC/out.$(macrojobnumber)
+Log = log_1113824935_DAC/log.$(macrojobnumber)
+Notification = never
+getenv=true
+Queue 1

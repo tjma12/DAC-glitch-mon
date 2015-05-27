@@ -1,0 +1,2 @@
+0 0 * * * /home/tjmassin/bash_hist_backups/backup_history.sh
+20 1,9,17 * * * /home/tjmassin/DAC_crossing_code/DAC_scripts/runMCTcron.sh
