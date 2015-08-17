@@ -2,15 +2,16 @@
 
 input=$1
 start_time=$2
-end_time=$3
+duration=$3
 chan_list=$4
 
+source /home/detchar/opt/gwpysoft/etc/gwpy-user-env.sh
 #echo ${input}
 
 num=`echo $((${input}+1))|bc`
 
-result=`sed -n "${num}p" < ${chan_list}`
+channel=`sed -n "${num}p" < ${chan_list}`
 
 #echo $result
 
-python find_crossings_condor.py -c ${channel} -s ${start_time_gps} -d ${duration} -i H1
+python find_crossings_condor.py -c ${channel} -s ${start_time} -d ${duration} -i H1

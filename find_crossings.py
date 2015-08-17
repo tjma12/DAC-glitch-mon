@@ -143,7 +143,7 @@ def write_xml(trig_times,freqs,snrs,channel,start_time,length,thresh):
         xmldoc.appendChild(ligolw.LIGO_LW())
         xmldoc.childNodes[0].appendChild(sngl_burst_table)
 # define trigger directory
-        trig_dir = ('/home/tjmassin/triggers/POSTER6/' + channel[:2] + '/' + 
+        trig_dir = ('/home/tjmassin/triggers/DAC_crossing/ER7/' + channel[:2] + '/' + 
         channel[3:] + '_' + str(thresh)  + '_DAC/' + str(start_time)[:5] + '/')
 
         if not os.path.exists(trig_dir):

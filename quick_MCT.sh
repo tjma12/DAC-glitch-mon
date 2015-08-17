@@ -29,7 +29,7 @@ ifo=$3
 frame=`gw_data_find -n -o ${ifo} -t ${ifo}1_R -s ${start_time} -e ${start_time} | head -n 1`
 
 chan_list="SUS_drive_signals_${start_time}.txt"
-FrChannels ${frame} | grep 'SUS' | grep 'MASTER_OUT' | grep 'DQ' | cut -d ' ' -f 1 > ${chan_list}
+FrChannels ${frame} | grep 'SUS' | grep 'MASTER_OUT' | grep 'DQ' | grep -Ev 'SR|PR' | cut -d ' ' -f 1 > ${chan_list}
 
 # execute python script using input parameters of bash script and channel list
 
