@@ -5,6 +5,7 @@ duration=$2
 outdir=$3
 trigger_dir=$4
 ifo=$5
+DQFlag=$6
 
 basedir="${outdir}/${start_time}_${duration}"
 
@@ -31,7 +32,7 @@ echo "Wrote list of all SUS MASTER_OUT channels to file: ${chan_list}"
 numchans=`wc -l ${basedir}/${chan_list} | cut -d ' ' -f 1`
 
 # generate condor DAG and sub files
-python make_sub_MCT.py ${basedir} ${start_time} ${duration} ${basedir}/${chan_list} ${ifo}1 ${trigger_dir}
+python make_sub_MCT.py --basedir ${basedir} --start-time-gps ${start_time} --duration ${duration} --chan-list ${basedir}/${chan_list} --ifo ${ifo}1 --trigger-dir ${trigger_dir} --science-flag ${DQFlag}
 python make_dag_MCT.py ${numchans} ${start_time} ${duration} ${basedir}
 
 

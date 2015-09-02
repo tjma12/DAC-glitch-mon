@@ -43,6 +43,7 @@ def read_command_line():
     parser.add_option("-c","--channel",metavar="channel",help="channel to run over")
     parser.add_option("-i","--ifo",metavar="ifo",help="IFO (L1 or H1)")
     parser.add_option("-o","--output-dir",metavar="output_dir",help="Output directory for triggers")
+    parser.add_option("-n","--flag-name",metavar="flag_name",type=str,help="segment database flag to indicate science time, example: 'DMT-ANALYSIS_READY'")
     v = optparse.Values()
     args, others = parser.parse_args(values=v)
 
@@ -67,7 +68,7 @@ def read_command_line():
     print 'IFO is ' + str(ifo)
     outdir = str(args.output_dir)
 
-    return chan_list,start_time,duration,ifo,outdir
+    return chan_list,start_time,duration,ifo,outdir,args.flag_name
 
 # function used to coalesce result of segment query
 def coalesceResultDictionary(result_dict):
@@ -82,11 +83,7 @@ def coalesceResultDictionary(result_dict):
     out_result_dict[0]['known']=known_seg_list
     return out_result_dict
 
-def find_segments(ifo,start_time,length):
-    if ifo == 'H1':
-        DQFlag = 'DMT-DC_READOUT_LOCKED'
-    else:
-        DQFlag = 'ODC-MASTER_OBS_INTENT'
+def find_segments(ifo,start_time,length,DQFlag):
     seg_dict=apicalls.dqsegdbQueryTimes('https','dqsegdb5.phy.syr.edu',ifo,DQFlag,'1','active,known,metadata',start_time,start_time+length)
     return seg_dict
 
@@ -187,8 +184,8 @@ def write_xml(trig_times,freqs,snrs,channel,start_time,length,thresh,outdir):
 if __name__=="__main__":
 #Usage: find_crossings.py [CHANNEL LIST] [START GPS] [DURATION] 
     thresh_vec=[0,16]
-    chan_list,start_time,length,ifo,outdir=read_command_line()
-    getSegs=find_segments(ifo,start_time,length) 
+    chan_list,start_time,length,ifo,outdir,DQFlag=read_command_line()
+    getSegs=find_segments(ifo,start_time,length,DQFlag) 
     DQsegs=coalesceResultDictionary(getSegs)
     if not DQsegs[0]['active']:
         print 'No analysis segments found'
