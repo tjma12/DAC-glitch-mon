@@ -185,13 +185,18 @@ if __name__=="__main__":
 #Usage: find_crossings.py [CHANNEL LIST] [START GPS] [DURATION] 
     thresh_vec=[0,16]
     chan_list,start_time,length,ifo,outdir,DQFlag=read_command_line()
+    sys.stdout.flush()
+    print 'read the command line'
     getSegs=find_segments(ifo,start_time,length,DQFlag) 
     DQsegs=coalesceResultDictionary(getSegs)
+    print 'read the segments'
+    sys.stdout.flush()
     if not DQsegs[0]['active']:
         print 'No analysis segments found'
         sys.exit()
     for channel in chan_list:
         print 'Fetching data for channel: ' + str(channel)
+        sys.stdout.flush()
         for segment in DQsegs[0]['active']:
             print 'Processing segment ' + str(segment[0]) + ' - ' + str(segment[1])
             stride = segment[1] - segment[0]
