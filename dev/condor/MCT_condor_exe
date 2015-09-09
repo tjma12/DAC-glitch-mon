@@ -1,0 +1,24 @@
+#!/bin/bash
+
+input=$1
+start_time=$2
+duration=$3
+chan_list=$4
+ifo=$5
+outdir=$6
+DQFlag=$7
+
+source /home/detchar/opt/gwpysoft/etc/gwpy-user-env.sh
+#echo ${input}
+
+num=`echo $((${input}+1))|bc`
+
+channel=`sed -n "${num}p" < ${chan_list}`
+
+echo $channel
+echo $start_time
+echo $duration
+echo $ifo
+echo $outdir
+
+python find_crossings_condor.py -c ${channel} -s ${start_time} -d ${duration} -i ${ifo} -o ${outdir} -n ${DQFlag}

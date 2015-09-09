@@ -42,7 +42,8 @@ def read_command_line():
     parser.add_option("-f","--chan_file",metavar="chan_file",help="list of channels to run over")
     parser.add_option("-c","--channel",metavar="channel",help="channel to run over")
     parser.add_option("-i","--ifo",metavar="ifo",help="IFO (L1 or H1)")
-
+    parser.add_option("-o","--output-dir",metavar="output_dir",help="Output directory for triggers")
+    parser.add_option("-n","--flag-name",metavar="flag_name",type=str,help="segment database flag to indicate science time, example: 'DMT-ANALYSIS_READY'")
     v = optparse.Values()
     args, others = parser.parse_args(values=v)
 
@@ -65,8 +66,9 @@ def read_command_line():
     print 'duration is ' + str(duration)
     ifo = str(args.ifo)
     print 'IFO is ' + str(ifo)
+    outdir = str(args.output_dir)
 
-    return chan_list,start_time,duration,ifo
+    return chan_list,start_time,duration,ifo,outdir,args.flag_name
 
 # function used to coalesce result of segment query
 def coalesceResultDictionary(result_dict):
@@ -81,11 +83,7 @@ def coalesceResultDictionary(result_dict):
     out_result_dict[0]['known']=known_seg_list
     return out_result_dict
 
-def find_segments(ifo,start_time,length):
-    if ifo == 'H1':
-        DQFlag = 'DMT-DC_READOUT_LOCKED'
-    else:
-        DQFlag = 'ODC-MASTER_OBS_INTENT'
+def find_segments(ifo,start_time,length,DQFlag):
     seg_dict=apicalls.dqsegdbQueryTimes('https','dqsegdb5.phy.syr.edu',ifo,DQFlag,'1','active,known,metadata',start_time,start_time+length)
     return seg_dict
 
@@ -105,19 +103,19 @@ def get_data(channel,start_time,length):
 def calc_crossings(channel,data,start_time,length,thresh):
     trig_segs = seg.segmentlist()
     if (thresh == 15) or (thresh == 16):
-        positives = data.data >= 2.**thresh
-        negatives = data.data < 2.**thresh
-        positives2 = data.data >= -2.**thresh
-        negatives2 = data.data < -2.**thresh
+        positives = data.value >= 2.**thresh
+        negatives = data.value < 2.**thresh
+        positives2 = data.value >= -2.**thresh
+        negatives2 = data.value < -2.**thresh
         crossings = np.logical_not(np.logical_xor(positives[1:], negatives[:-1]))
         crossings2 = np.logical_not(np.logical_xor(positives2[1:], negatives2[:-1]))
         all_crossings = np.logical_xor(crossings,crossings2)
     elif thresh == 0:
-        positives = data.data >= 0
-        negatives = data.data < 0
+        positives = data.value >= 0
+        negatives = data.value < 0
         all_crossings = np.logical_not(np.logical_xor(positives[1:], negatives[:-1]))
     elif thresh == 'window':
-        all_crossings = np.logical_and(data.data >= ((2.**16) - 800),data.data <= ((2.**16) + 800))
+        all_crossings = np.logical_and(data.value >= ((2.**16) - 800),data.value <= ((2.**16) + 800))
         for i in np.arange(0,len(all_crossings)):
             if all_crossings[i]:
                 trig_segs |= seg.segmentlist([seg.segment(data.times[i],data.times[i]+(1./data.sample_rate.value))])
@@ -146,7 +144,7 @@ def calc_crossings(channel,data,start_time,length,thresh):
 
     return trig_times,freqs,snrs
 
-def write_xml(trig_times,freqs,snrs,channel,start_time,length,thresh):
+def write_xml(trig_times,freqs,snrs,channel,start_time,length,thresh,outdir):
     if len(trig_times):
         print 'number of triggers is ' + str(len(trig_times))
         print 'trigger rate is ' + str(float(len(trig_times))/length)
@@ -166,7 +164,7 @@ def write_xml(trig_times,freqs,snrs,channel,start_time,length,thresh):
         xmldoc.appendChild(ligolw.LIGO_LW())
         xmldoc.childNodes[0].appendChild(sngl_burst_table)
 # define trigger directory
-        trig_dir = ('/home/tjmassin/triggers/POSTER6/' + channel[:2] + '/' + 
+        trig_dir = (outdir  + channel[:2] + '/' + 
         channel[3:] + '_' + str(thresh)  + '_DAC/' + str(start_time)[:5] + '/')
 
         if not os.path.exists(trig_dir):
@@ -186,14 +184,19 @@ def write_xml(trig_times,freqs,snrs,channel,start_time,length,thresh):
 if __name__=="__main__":
 #Usage: find_crossings.py [CHANNEL LIST] [START GPS] [DURATION] 
     thresh_vec=[0,16]
-    chan_list,start_time,length,ifo=read_command_line()
-    getSegs=find_segments(ifo,start_time,length) 
+    chan_list,start_time,length,ifo,outdir,DQFlag=read_command_line()
+    sys.stdout.flush()
+    print 'read the command line'
+    getSegs=find_segments(ifo,start_time,length,DQFlag) 
     DQsegs=coalesceResultDictionary(getSegs)
+    print 'read the segments'
+    sys.stdout.flush()
     if not DQsegs[0]['active']:
         print 'No analysis segments found'
         sys.exit()
     for channel in chan_list:
         print 'Fetching data for channel: ' + str(channel)
+        sys.stdout.flush()
         for segment in DQsegs[0]['active']:
             print 'Processing segment ' + str(segment[0]) + ' - ' + str(segment[1])
             stride = segment[1] - segment[0]
@@ -205,4 +208,4 @@ if __name__=="__main__":
                 except ValueError:
                     print 'No triggers found'
                     continue
-                write_xml(trig_times,freqs,snrs,channel,segment[0],stride,thresh) 
+                write_xml(trig_times,freqs,snrs,channel,segment[0],stride,thresh,outdir) 
