@@ -84,7 +84,7 @@ def coalesceResultDictionary(result_dict):
     return out_result_dict
 
 def find_segments(ifo,start_time,length,DQFlag):
-    seg_dict=apicalls.dqsegdbQueryTimes('https','dqsegdb5.phy.syr.edu',ifo,DQFlag,'1','active,known,metadata',start_time,start_time+length)
+    seg_dict=apicalls.dqsegdbQueryTimes('https','segments.ligo.org',ifo,DQFlag,'1','active,known,metadata',start_time,start_time+length)
     return seg_dict
 
 def get_data(channel,start_time,length):
