@@ -1,0 +1,5 @@
+bash build_condor_MCT.sh 1136246417 86400 /home/tjmassin/DAC-MCT-RUNS/ /home/tjmassin/DAC_MCT_trigs/O1/ L DMT-ANALYSIS_READY
+
+cd /home/tjmassin/DAC-MCT-RUNS/1136246417_86400/condor_dag/
+
+condor_submit_dag 
