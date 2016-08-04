@@ -1,5 +1,6 @@
 import sys
 import argparse
+import os 
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--basedir', type=str, required=True,
@@ -22,17 +23,32 @@ subname = args.basedir + "/condor_dag/DAC_MCT_" + args.start_time_gps + "_" + ar
 
 fP=open(subname,'w')
 
-print >> fP,"Executable = MCT_condor_exe"
-print >> fP,"Universe = vanilla"
-print >> fP,"Arguments = $(macrojobnumber) %s %s %s %s %s %s" % (args.start_time_gps,args.duration,
+#Configure datafind server and robot certs
+
+datafind_server = os.getenv('LIGO_DATAFIND_SERVER')
+datafind_env = 'LIGO_DATAFIND_SERVER=%s' % datafind_server
+
+if args.ifo == 'H1':
+    cert = 'X509_USER_CERT=/home/tjmassin/robot_cert/DAC-glitch-mon-LHO_ldas-pcdev2.ligo-wa.caltech.edu-cert.pem'
+    key = 'X509_USER_KEY=/home/tjmassin/robot_cert/robot.key.pem'
+else:
+    cert = 'X509_USER_CERT=/home/tjmassin/robot_cert/DAC-glitch-mon-LLO_ldas-pcdev2.ligo-la.caltech.edu-cert.pem'
+    key = 'X509_USER_KEY=/home/tjmassin/robot_cert/robot.key.pem'
+
+# Print information into sub file
+
+print >> fP,'Executable = MCT_condor_exe'
+print >> fP,'Universe = vanilla'
+print >> fP,'Arguments = $(macrojobnumber) %s %s %s %s %s %s' % (args.start_time_gps,args.duration,
         args.chan_list,args.ifo,args.trigger_dir,args.science_flag)
-print >> fP,"Error = log_%s_MCT/err.$(macrojobnumber)" %(args.start_time_gps)
-print >> fP,"Output = log_%s_MCT/out.$(macrojobnumber)" %(args.start_time_gps)
-print >> fP,"Log = log_%s_MCT/log.$(macrojobnumber)" %(args.start_time_gps)
-print >> fP,"Notification = never"
-print >> fP,'environment = "X509_USER_CERT=/home/tjmassin/robot_cert/DAC-glitch-mon-LHO_ldas-pcdev2.ligo-wa.caltech.edu-cert.pem X509_USER_KEY=/home/tjmassin/robot_cert/robot.key.pem LIGO_DATAFIND_SERVER=10.12.0.49:80"'
-print >> fP,"accounting_group = ligo.dev.o1.detchar.explore.test"
-print >> fP,"Queue 1"
+print >> fP,'Error = log_%s_MCT/err.$(macrojobnumber)' %(args.start_time_gps)
+print >> fP,'Output = log_%s_MCT/out.$(macrojobnumber)' %(args.start_time_gps)
+print >> fP,'Log = log_%s_MCT/log.$(macrojobnumber)' %(args.start_time_gps)
+print >> fP,'Notification = never'
+print >> fP,'environment = "%s %s %s"' % (cert,key,datafind_env)
+#print >> fP,'environment = "X509_USER_CERT=/home/tjmassin/robot_cert/DAC-glitch-mon-LHO_ldas-pcdev2.ligo-wa.caltech.edu-cert.pem X509_USER_KEY=/home/tjmassin/robot_cert/robot.key.pem LIGO_DATAFIND_SERVER=10.12.0.49:80"'
+print >> fP,'accounting_group = ligo.dev.o1.detchar.explore.test'
+print >> fP,'Queue 1'
 
 fP.close()
 

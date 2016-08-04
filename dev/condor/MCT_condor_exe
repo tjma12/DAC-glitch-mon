@@ -8,8 +8,7 @@ ifo=$5
 outdir=$6
 DQFlag=$7
 
-source /home/detchar/opt/gwpysoft/etc/gwpy-user-env.sh
-#echo ${input}
+source /home/detchar/opt/gwpysoft/bin/activate
 
 num=`echo $((${input}+1))|bc`
 
