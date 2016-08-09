@@ -88,10 +88,10 @@ def find_segments(ifo,start_time,length,DQFlag):
     return seg_dict
 
 def get_data(channel,start_time,length):
-    connection = datafind.GWDataFindHTTPConnection()
-    cache = connection.find_frame_urls(ifo[0],ifo,start_time,start_time + length,urltype='file')
     print 'Starting data transfer for channel: ' + str(channel)
-    data = TimeSeries.read(cache,channel,start=start_time,end=start_time+length)
+    connection = datafind.GWDataFindHTTPConnection()
+    cache = connection.find_frame_urls(ifo[0],ifo+'_R',start_time,start_time+length,urltype='file')
+    data = TimeSeries.read(cache,channel)
     print "Got data for channel: " + str(channel)
     return data
 
